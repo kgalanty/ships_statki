@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta charset="utf-8">
+	<title>Ships</title>
+	
+	<script src="jquery-1.10.2.js"></script>
+	<script src="https://js.pusher.com/3.0/pusher.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <style>
+	 .maszt-hit { background-color: rgba(255,0,0,0.3) }
+	 #My_Ships, #Enemy_Ships {
+	 float:left; margin-right:50px;
+        border:0;
+        width:450px; height:450px;
+        border-collapse: collapse;
+      }
+       #My_Ships td, #Enemy_Ships td {
+        
+        border-collapse: collapse;
+        width:22px; height:22px;
+      }
+	  #My_Ships td[x], #Enemy_Ships td[x]{
+		border:1px solid #6688ff;
+	  }
+       #Enemy_Ships td[x]:hover{
+        
+        border-collapse: collapse;
+        width:18px; height:18px;
+        background-color: #E7EFFF;
+      }
+      .topRow td {
+        font-weight:bold;
+        
+      }
+	.cyfry td  {
+		border:0;
+	}
+	
+      #shipgrid {
+        border:2px solid #E6E6E6;
+        width:450px; height:450px;
+        border-collapse: collapse;
+      }
+       #shipgrid td {
+        border:2px solid #E6E6E6;
+        border-collapse: collapse;
+        width:18px; height:18px;
+      }
+       #shipgrid td[x]:hover {
+        border:2px solid #E6E6E6;
+        border-collapse: collapse;
+        width:18px; height:18px;
+        background-color: #E7EFFF;
+      }
+      td.topRow  {
+        font-weight:bold;
+        border:0;
+      }
+	  div.overlay {
+ display:none;
+  background: #fff; 
+  width:      100%;
+  height:     100%; 
+  z-index:    10;
+  top:        0; 
+  left:       0; 
+  position:   fixed; 
+}
+.info {
+	font-size: 26px;
+	margin-top: 10%;
+	margin-left:35%;
+	font-family: Verdana;
+}
+#player_ships_div { }
+#statki-main { width:100%; text-align:center; margin-left:20%; margin-right:20%;}
+#move-info  { margin:0 auto; width:80%; text-align:center; margin-bottom:30px;margin-top:10px; }
+.maszt td{  }
+	</style>
+	</head>
+	<body>
+	<div class="overlay">
+		<div class="info">Oczekiwanie na drugiego gracza</div>
+	</div>
+	
+    <table id="shipgrid">
+	<tr><td colspan="11" style="border-bottom:2px solid black;">Twoje statki</td></tr>
+	<div id="awaiting"></div>
+	<div id="ship_choice"><form id="ship_choice_form"><input type="radio" name="ship_radio" value="1" left="4"> 1-masztowiec [<span id="ship1-u">4</span>] 
+	<input type="radio" name="ship_radio" value="2" left="3"> 2-masztowiec [<span id="ship2-u">3</span>]
+	<input type="radio" name="ship_radio" value="3" left="2"> 3-masztowiec [<span id="ship3-u">2</span>]
+	<input type="radio" name="ship_radio" value="4" left="1"> 4-masztowiec [<span id="ship4-u">1</span>]</form></div>
+    <script>
+	  var tab = '<tr class="topRow"><th></th>';
+      var letters = ['A', 'B' ,'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];	//tablica liter do generowania plansz
+    var your_move = true;	//zmienna decydująca o tym kto ma ruch
+	var Total_Ships_Hit = 0;
+	var Total_MyShips_Hit = 0;
+	/*function FindMaszt(x,y) {
+	for(var k=1;k<5; i++) {
+		jQuery.each(MyShips[Ship], function(i, val) { 
+			jQuery.each(val, function(j, v2) { 
+			{
+				
+			}
+			
+	}
+	}*/
+	function OznaczPudla(maszty, ship_id) {	//wywołanie: OznaczPudla(data.maszty, data.ship_id);
+		$.each(EnemyShips[maszty][ship_id], function(i, v) {	//odnalezienie trafianego masztu w tablicy i oznaczenie go jako trafiony 
+					
+				
+	
+		if(!$('#Enemy_Ships').find('td[x='+(parseInt(v.x)+1)+'][y='+(parseInt(v.y)-1)+']').hasClass('maszt-hit'))
+				$('#Enemy_Ships').find('td[x='+(parseInt(v.x)+1)+'][y='+(parseInt(v.y)-1)+']').html('<span class="glyphicon glyphicon-certificate"></span>');
+			if(!$('#Enemy_Ships').find('td[x='+(parseInt(v.x)+1)+'][y='+(parseInt(v.y))+']').hasClass('maszt-hit'))
+				$('#Enemy_Ships').find('td[x='+(parseInt(v.x)+1)+'][y='+(parseInt(v.y))+']').html('<span class="glyphicon glyphicon-certificate"></span>');
+			if(!$('#Enemy_Ships').find('td[x='+(parseInt(v.x)+1)+'][y='+(parseInt(v.y)+1)+']').hasClass('maszt-hit'))
+				$('#Enemy_Ships').find('td[x='+(parseInt(v.x)+1)+'][y='+(parseInt(v.y)+1)+']').html('<span class="glyphicon glyphicon-certificate"></span>');
+			if(!$('#Enemy_Ships').find('td[x='+(parseInt(v.x))+'][y='+(parseInt(v.y)-1)+']').hasClass('maszt-hit'))
+				$('#Enemy_Ships').find('td[x='+(parseInt(v.x))+'][y='+(parseInt(v.y)-1)+']').html('<span class="glyphicon glyphicon-certificate"></span>');
+			if(!$('#Enemy_Ships').find('td[x='+(parseInt(v.x)-1)+'][y='+(parseInt(v.y)+1)+']').hasClass('maszt-hit'))
+				$('#Enemy_Ships').find('td[x='+(parseInt(v.x)-1)+'][y='+(parseInt(v.y)+1)+']').html('<span class="glyphicon glyphicon-certificate"></span>');
+			if(!$('#Enemy_Ships').find('td[x='+(parseInt(v.x)-1)+'][y='+(parseInt(v.y))+']').hasClass('maszt-hit'))
+				$('#Enemy_Ships').find('td[x='+(parseInt(v.x)-1)+'][y='+(parseInt(v.y))+']').html('<span class="glyphicon glyphicon-certificate"></span>');
+			if(!$('#Enemy_Ships').find('td[x='+(parseInt(v.x)-1)+'][y='+(parseInt(v.y)-1)+']').hasClass('maszt-hit'))
+				$('#Enemy_Ships').find('td[x='+(parseInt(v.x)-1)+'][y='+(parseInt(v.y)-1)+']').html('<span class="glyphicon glyphicon-certificate"></span>');
+			if(!$('#Enemy_Ships').find('td[x='+(parseInt(v.x))+'][y='+(parseInt(v.y)+1)+']').hasClass('maszt-hit'))
+				$('#Enemy_Ships').find('td[x='+(parseInt(v.x))+'][y='+(parseInt(v.y)+1)+']').html('<span class="glyphicon glyphicon-certificate"></span>');
+				} );
+	}
+	function fillAround(Ship) {	
+		jQuery.each(MyShips[Ship], function(i, val) { 
+			jQuery.each(val, function(j, v2) { 
+			this_x=v2['x'];
+			this_y=v2['y'];
+			if($('#shipgrid').find('td[x='+(parseInt($(this_x).selector)+1)+'][y='+(parseInt($(this_y).selector)-1)+']').css('background-color')!='rgb(0, 3, 123)')
+				$('#shipgrid').find('td[x='+(parseInt($(this_x).selector)+1)+'][y='+(parseInt($(this_y).selector)-1)+']').css('background-color', '#b98fff');
+			if($('#shipgrid').find('td[x='+(parseInt($(this_x).selector)+1)+'][y='+(parseInt($(this_y).selector))+']').css('background-color')!='rgb(0, 3, 123)')
+				$('#shipgrid').find('td[x='+(parseInt($(this_x).selector)+1)+'][y='+(parseInt($(this_y).selector))+']').css('background-color', '#b98fff');
+			if($('#shipgrid').find('td[x='+(parseInt($(this_x).selector)+1)+'][y='+(parseInt($(this_y).selector)+1)+']').css('background-color')!='rgb(0, 3, 123)')
+				$('#shipgrid').find('td[x='+(parseInt($(this_x).selector)+1)+'][y='+(parseInt($(this_y).selector)+1)+']').css('background-color', '#b98fff');
+			if($('#shipgrid').find('td[x='+(parseInt($(this_x).selector))+'][y='+(parseInt($(this_y).selector)-1)+']').css('background-color')!='rgb(0, 3, 123)')
+				$('#shipgrid').find('td[x='+(parseInt($(this_x).selector))+'][y='+(parseInt($(this_y).selector)-1)+']').css('background-color', '#b98fff');
+			if($('#shipgrid').find('td[x='+(parseInt($(this_x).selector)-1)+'][y='+(parseInt($(this_y).selector)+1)+']').css('background-color')!='rgb(0, 3, 123)')
+				$('#shipgrid').find('td[x='+(parseInt($(this_x).selector)-1)+'][y='+(parseInt($(this_y).selector)+1)+']').css('background-color', '#b98fff');
+			if($('#shipgrid').find('td[x='+(parseInt($(this_x).selector)-1)+'][y='+(parseInt($(this_y).selector))+']').css('background-color')!='rgb(0, 3, 123)')
+				$('#shipgrid').find('td[x='+(parseInt($(this_x).selector)-1)+'][y='+(parseInt($(this_y).selector))+']').css('background-color', '#b98fff');
+			if($('#shipgrid').find('td[x='+(parseInt($(this_x).selector)-1)+'][y='+(parseInt($(this_y).selector)-1)+']').css('background-color')!='rgb(0, 3, 123)')
+				$('#shipgrid').find('td[x='+(parseInt($(this_x).selector)-1)+'][y='+(parseInt($(this_y).selector)-1)+']').css('background-color', '#b98fff');
+			if($('#shipgrid').find('td[x='+(parseInt($(this_x).selector))+'][y='+(parseInt($(this_y).selector)+1)+']').css('background-color')!='rgb(0, 3, 123)')
+				$('#shipgrid').find('td[x='+(parseInt($(this_x).selector))+'][y='+(parseInt($(this_y).selector)+1)+']').css('background-color', '#b98fff');
+				
+				})
+			});
+	
+	}
+	function isAdjacent(this_x, this_y)
+	{
+		if(
+		
+		($('#shipgrid').find('td[x='+(parseInt($(this_x).selector)+1)+'][y='+(parseInt($(this_y).selector))+']').css('background-color')=='rgb(0, 3, 123)') ||
+		
+		($('#shipgrid').find('td[x='+(parseInt($(this_x).selector))+'][y='+(parseInt($(this_y).selector)-1)+']').css('background-color')=='rgb(0, 3, 123)') ||
+		
+		($('#shipgrid').find('td[x='+(parseInt($(this_x).selector)-1)+'][y='+(parseInt($(this_y).selector))+']').css('background-color')=='rgb(0, 3, 123)') ||
+		
+		($('#shipgrid').find('td[x='+(parseInt($(this_x).selector))+'][y='+(parseInt($(this_y).selector)+1)+']').css('background-color')=='rgb(0, 3, 123)'))
+		return true; else return false;
+		
+		
+	
+	}
+	function makeGrid(param)
+	{
+		tab='<tr class="topRow"><td></td>';
+		 $.each(letters, function() {
+         
+         tab+='<td>'+this+'</td>';
+         if(this == 'J') tab+='</tr>';
+      });
+      if(param==2) {
+			$("#My_Ships").append(tab);
+			$("#Enemy_Ships").append(tab);
+			tab='';
+		}
+		else
+        $("#shipgrid").append(tab); tab='';
+      for(var y=1; y<11; y++) {
+        tab+="<tr><td class='cyfry'>"+y+"</td>"; 
+          for(var x=1; x<11; x++)
+             tab+="<td x="+x+" y="+y+" shipf='false'></td>";  
+             tab+="</tr>";   
+        }
+		if(param==2) {
+			$("#My_Ships").append(tab);
+			$("#Enemy_Ships").append(tab);
+		}
+		else
+        $("#shipgrid").append(tab);
+		tab='';
+	}
+	function Enemy_Move() { your_move = false; $("#move-info").removeClass("alert-info").addClass('alert-warning').html('Ruch przeciwnika'); }
+	function Your_Move() { your_move = true;  $("#move-info").removeClass("alert-warning").addClass('alert-info').html('Twój ruch'); }
+	function moveToGamestateThree() {
+	$("#shipgrid").off("td");
+		gamestate=3;
+		$("body").empty();
+		$('body').append('<div class="alert alert-info" role="alert" id="move-info"></div>');
+		$('body').append("<div id='statki-main'><table id='My_Ships'><tr><td></td><td colspan='10' class='topRow'>Twoje statki</td></tr></table></div>");
+		$('#statki-main').append("<table id='Enemy_Ships'><tr><td></td><td colspan='10' class='topRow'>Statki przeciwnika</td></tr></table>");
+		
+		if(player_id == 1) {
+			Your_Move();
+		
+		
+		}
+		else Enemy_Move();
+		$("#Enemy_Ships").on("click", "td[x]", MakeHit);
+		makeGrid(2);
+		for(var k=1;k<5;k++) {
+		jQuery.each(MyShips[k], function(i, val) { 
+				jQuery.each(val, function(j, v2) { 
+					if(typeof v2 == 'number') {
+						this_x=v2;
+						this_y=v2;
+					} else {
+						this_x=v2['x'];
+						this_y=v2['y']; 
+					}
+				
+				$('#My_Ships').find('td[x='+(parseInt(this_x))+'][y='+(parseInt(this_y))+']').css('border','3px solid #000').attr('shipF','true').attr('maszty', k).attr('ship_id', i);
+		})
+	}); }
+	}
+	var EnemyShips = {
+		'1' :  {
+			0 : {
+				0 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					}
+			},
+			1 : {
+				0 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+				}
+			},
+			2 : {
+				0 : {
+					'x' : 0,
+					'y' : 0,
+					'hit' : false
+				}
+			},
+			3 : {
+				0 : {
+					'x' : 0,
+					'y' : 0,
+					'hit' : false
+				}
+			}
+		},
+		'2' :  {
+			0 : {
+				0 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					},
+				1 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					}
+			},
+			1 : {
+				0 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					},
+				1 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					}},
+			2 : {
+				0 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					},
+				1 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					}
+			}
+		},
+		'3' :  {
+			0 : {
+				0 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					},
+				1 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					},
+				2 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					}
+			},
+			1 : {
+				0 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					},
+				1 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					},
+				2 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					}
+			}
+		},
+		'4' :  {
+			0 : {
+				0: {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+				},
+				1: {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+				},
+				2: {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+				},
+				3: {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+				}
+			}
+		}
+	};
+	var MyShips = {
+		'1' :  {
+			0 : {
+				0 : {
+				'x' : 1,
+				'y' : 1,
+				'hit' : false
+					}
+			},
+			1 : {
+				0 : {
+				'x' : 1,
+				'y' : 1,
+				'hit' : false
+				}
+			},
+			2 : {
+				0 : {
+					'x' : 1,
+					'y' : 1,
+					'hit' : false
+				}
+			},
+			3 : {
+				0 : {
+					'x' : 1,
+					'y' : 1,
+					'hit' : false
+				}
+			}
+		},
+		'2' :  {
+			0 : {
+				0 : {
+				'x' : 1,
+				'y' : 4,
+				'hit' : false
+					},
+				1 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					}
+			},
+			1 : {
+				0 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					},
+				1 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					}},
+			2 : {
+				0 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					},
+				1 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					}
+			}
+		},
+		'3' :  {
+			0 : {
+				0 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					},
+				1 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					},
+				2 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					}
+			},
+			1 : {
+				0 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					},
+				1 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					},
+				2 : {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+					}
+			}
+		},
+		'4' :  {
+			0 : {
+				0: {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+				},
+				1: {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+				},
+				2: {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+				},
+				3: {
+				'x' : 0,
+				'y' : 0,
+				'hit' : false
+				}
+			}
+		}
+	};
+	var gamestate = 1; //1 - ustawianie statków
+	
+	var pusher = new Pusher('875a535db554ca357be9', {	//inicjalizacja usługi websocketów
+      encrypted: true
+    });
+	    Pusher.log = function(message) {		//włączenie logowania zdarzeń do konsoli
+      if (window.console && window.console.log) {
+        window.console.log(message);
+      }
+    };
+	var socketId = null;	//id połączenia
+	pusher.connection.bind('connected', function() { 	//przypisanie każdemu uczestnikowi unikalnego id połączenia
+		socketId = pusher.connection.socket_id;
+		});
+	var ShipsSet = 0;	//liczba ustawionych statków
+    var channel = pusher.subscribe('statki');	//subskrybcja kanału nasłuchu w websocket
+	var player_id;	//id gracza - prawdopodobnie do zlikwidowania w przyszłości na rzecz socket_id
+
+	channel.bind('both_ready', function(data) {	//potwierdzenie gotowości obu graczy (ustawienie statków)
+		$(".info").html('Statki zostały ustawione. Gra rozpoczyna się...').delay(1000).fadeOut();
+		setTimeout(function(){ moveToGamestateThree(); }, 1000);	//rysowanie plansz u obu graczy
+	 });
+    channel.bind('check_player', function(data) {
+
+		if(data.message=="2") {
+			player_id = 1;
+		 var posting = $.post('query.php?check_players', { p: data.message } );
+		 }
+		 else player_id=2;
+
+    });
+	channel.bind('update_status', function(data) {
+		if(player_id!=data.id)
+		{
+		$("#player_ships_progress").attr("value", data.val);
+		if(data.val==100) {
+			$("#player_ships_div").html("Drugi gracz ustawił już statki<br>"); $("#player_ships_progress").fadeOut(); }
+		}
+	});
+channel.bind('hit_t', function(data) {
+
+	if(player_id==data.id) {
+	if(data.ship_hit=='true') { //statek trafiony
+			EnemyShips[data.maszty][data.ship_id][data.id_maszt].hit=true;
+			EnemyShips[data.maszty][data.ship_id][data.id_maszt].x=data.x;
+			EnemyShips[data.maszty][data.ship_id][data.id_maszt].y=data.y;
+			//var ShipCoord = [];
+			if(data.entire_ship_hit=="true") 
+			{
+				OznaczPudla(data.maszty, data.ship_id);	//obrysowanie statku pudłami
+				Total_Ships_Hit++;
+				if(Total_Ships_Hit==10)	//jeśli trafiono wszystkie statki
+				{
+					$("#move-info").removeClass("alert-info").removeClass("alert-warning").addClass('alert-success').html('Wygrana'); 
+					$("#Enemy_Ships").off("click", "td[x]", MakeHit);
+				}
+			}
+			$('#Enemy_Ships').find('td[x='+(parseInt(data.x))+'][y='+(parseInt(data.y))+']').addClass('maszt-hit').css('border','2px solid #F00');
+			$('#Enemy_Ships').find('td[x='+(parseInt(data.x))+'][y='+(parseInt(data.y))+']').html('<span class="glyphicon glyphicon-remove" style="color: red;"></span>');
+			your_move=true;
+		}
+		else {
+			Enemy_Move();	//przekazanie ruchu przeciwnikowi
+			$('#Enemy_Ships').find('td[x='+(parseInt(data.x))+'][y='+(parseInt(data.y))+']').html('<span class="glyphicon glyphicon-certificate"></span>');
+			
+
+		}
+}
+
+
+	});
+	
+	channel.bind('hit', function(data) {
+		if(player_id!=data.id)	//trafienie - obsługa po stronie drugiego gracza
+		{
+			var this_ship = $('#My_Ships').find('td[x='+(parseInt(data.x))+'][y='+(parseInt(data.y))+']');
+			if($(this_ship).attr('shipf')=='true')	//jezeli maszt jest trafiony
+			{
+				$(this_ship).addClass('maszt-hit');
+				$(this_ship).html('<span class="glyphicon glyphicon-remove" style="color: red;"></span>');
+				var maszty_count = $(this_ship).attr('maszty');
+				var ship_id = $(this_ship).attr('ship_id');
+				var this_x = data.x;
+				var this_y = data.y;
+				var not_hit_count = 0;	//liczba wciąz nietrafionych masztów
+				$.each(MyShips[maszty_count][ship_id], function(i, v) {	//odnalezienie trafianego masztu w tablicy i oznaczenie go jako trafiony 
+					if(v.x==data.x && v.y==data.y) { v.hit = true; id_maszt = i; }
+					if(v.hit == false) not_hit_count++;
+				} );
+				if(not_hit_count==0) {	//trafiono cały statek
+					var entire_ship_hit = true; 
+					Total_MyShips_Hit++;
+					if(Total_MyShips_Hit==10)	//jeśli trafiono wszystkie statki - gra skończona
+					{
+						$("#move-info").removeClass("alert-info").removeClass("alert-warning").addClass('alert-danger').html('Przegrana'); 	//poinformowanie gracza
+						$("#Enemy_Ships").off("click", "td[x]", MakeHit); //wyrejestrowanie zdarzenia kliknięcia z planszy
+					}
+				}
+				else 
+					var entire_ship_hit = false; 
+				var ship_hit = 'true';
+				$.post('query.php?hit_t', { x: this_x, 
+					y: this_y, 
+					p: data.id, 
+					ship_hit: ship_hit, 
+					ship_id: ship_id, 
+					id_maszt: id_maszt,
+					entire_ship_hit: entire_ship_hit,
+					maszty: maszty_count, 
+					socket_id: socketId } ); 
+				
+				
+				return 0;
+			}
+			else if($(this_ship).attr('shipf')=='false' )
+			{
+				$(this_ship).html('<span class="glyphicon glyphicon-certificate"></span>');
+				var this_x = data.x;
+				var this_y = data.y;
+				var ship_hit = 'false';
+				$.post('query.php?hit_t', { x: this_x, y: this_y, p: data.id, ship_hit: ship_hit, socket_id: socketId } ); 
+				Your_Move();
+				return 0;
+			}
+		} //trafienie - obsługa po stronie gracza mającego ruch
+		
+	});
+	if(gamestate==1) //ustawianie statków
+	{
+	$("#shipgrid").on("click", "td[x]", function() {
+		var thisButton = $('input[name=ship_radio]').filter(':checked');
+			//console.log(player_id);
+        switch($(thisButton).val()) {
+		case '1':
+		console.log($(this).css('background-color'));
+			if($(thisButton).attr('left')>0 && $(this).css('background-color')!='rgb(185, 143, 255)' && $(this).css('background-color')!='rgb(0, 3, 123)') {
+			$(this).css('background-color', '#00037b');
+			$(thisButton).attr('left', $(thisButton).attr('left')-1);
+			//console.log($(thisButton).attr('left')); 
+			var this_x = $(this).attr('x');
+			var this_y = $(this).attr('y');
+			//console.log(parseInt($(this_x).selector)+1);
+			//console.log($(this_y).selector);
+			//console.log('td[x='+(parseInt($(this_x).selector))+'][y='+(parseInt($(this_y).selector)-1)+']');
+			$('#shipgrid').find('td[x='+(parseInt($(this_x).selector)+1)+'][y='+(parseInt($(this_y).selector)-1)+']').css('background-color', '#b98fff');
+			$('#shipgrid').find('td[x='+(parseInt($(this_x).selector)+1)+'][y='+(parseInt($(this_y).selector))+']').css('background-color', '#b98fff');
+			$('#shipgrid').find('td[x='+(parseInt($(this_x).selector)+1)+'][y='+(parseInt($(this_y).selector)+1)+']').css('background-color', '#b98fff');
+			$('#shipgrid').find('td[x='+(parseInt($(this_x).selector))+'][y='+(parseInt($(this_y).selector)-1)+']').css('background-color', '#b98fff');
+			$('#shipgrid').find('td[x='+(parseInt($(this_x).selector)-1)+'][y='+(parseInt($(this_y).selector)+1)+']').css('background-color', '#b98fff');
+			$('#shipgrid').find('td[x='+(parseInt($(this_x).selector)-1)+'][y='+(parseInt($(this_y).selector))+']').css('background-color', '#b98fff');
+			$('#shipgrid').find('td[x='+(parseInt($(this_x).selector)-1)+'][y='+(parseInt($(this_y).selector)-1)+']').css('background-color', '#b98fff');
+			$('#shipgrid').find('td[x='+(parseInt($(this_x).selector))+'][y='+(parseInt($(this_y).selector)+1)+']').css('background-color', '#b98fff');
+			$("#ship1-u").html($("#ship1-u").html()-1);
+			MyShips["1"][$("#ship1-u").html()][0]['x'] = this_x;
+			MyShips["1"][$("#ship1-u").html()][0]['y'] = this_y;
+			ShipsSet++;
+			}
+			if($(thisButton).attr('left') == 0) {
+				$(thisButton).attr('disabled', true);
+				selectShipRadio();
+				
+			}
+		break;
+		case '2':
+			if($("#ship2-u").html()!="0" && $(this).css('background-color')!='rgb(185, 143, 255)' && $(this).css('background-color')!='rgb(0, 3, 123)')
+			{
+				 var this_x = $(this).attr('x');
+				 var this_y = $(this).attr('y');
+				if($(thisButton).attr('left') !=0 && typeof ShipPartLeft == 'undefined')
+				{
+					ShipPartLeft=1;
+					$(this).css('background-color', '#00037b'); 
+					//console.log($(thisButton).attr('left')-1);
+					MyShips["2"][($(thisButton).attr('left'))-1][ShipPartLeft]['x'] = this_x;
+					MyShips["2"][($(thisButton).attr('left'))-1][ShipPartLeft]['y'] = this_y;
+					
+				}
+				else
+				{
+					if(isAdjacent(this_x, this_y)) {
+						$(this).css('background-color', '#00037b');
+						ShipPartLeft--;
+						MyShips["2"][$(thisButton).attr('left')-1][ShipPartLeft]['x'] = this_x;
+						MyShips["2"][$(thisButton).attr('left')-1][ShipPartLeft]['y'] = this_y;
+						if(ShipPartLeft==0) {
+							$("#ship2-u").html($("#ship2-u").html()-1);
+							fillAround(2); ShipsSet++;
+							delete(ShipPartLeft);
+							$(thisButton).attr('left', ($(thisButton).attr('left'))-1);
+							if($(thisButton).attr('left')==0)
+							{
+								$(thisButton).attr('disabled', true);
+								selectShipRadio(); 
+							}
+						}
+					}
+					else alert('nie jest sasiadem');
+				}
+			}
+		break;
+		case '3':
+			if($("#ship3-u").html()!="0" && $(this).css('background-color')!='rgb(185, 143, 255)' && $(this).css('background-color')!='rgb(0, 3, 123)')
+			{
+				 var this_x = $(this).attr('x');
+				 var this_y = $(this).attr('y');
+				if($(thisButton).attr('left') !=0 && typeof ShipPartLeft == 'undefined')
+				{
+					ShipPartLeft=2;
+					$(this).css('background-color', '#00037b'); 
+					//console.log($(thisButton).attr('left')-1);
+					MyShips["3"][($(thisButton).attr('left'))-1][ShipPartLeft]['x'] = this_x;
+					MyShips["3"][($(thisButton).attr('left'))-1][ShipPartLeft]['y'] = this_y;
+					
+				}
+				else
+				{
+					if(isAdjacent(this_x, this_y)) {
+						$(this).css('background-color', '#00037b');
+						ShipPartLeft--;
+						MyShips["3"][$(thisButton).attr('left')-1][ShipPartLeft]['x'] = this_x;
+						MyShips["3"][$(thisButton).attr('left')-1][ShipPartLeft]['y'] = this_y;
+						if(ShipPartLeft==0) {
+							$("#ship3-u").html($("#ship3-u").html()-1);
+							fillAround(3); ShipsSet++;
+							delete(ShipPartLeft);
+							$(thisButton).attr('left', ($(thisButton).attr('left'))-1);
+							if($(thisButton).attr('left')==0)
+							{
+								$(thisButton).attr('disabled', true);
+								selectShipRadio(); 
+							}
+						}
+					}
+					//else alert('nie jest sasiadem');
+				}
+			}
+		break;
+		case '4':
+			if($("#ship4-u").html()=="1" && $(this).css('background-color')!='rgb(185, 143, 255)' && $(this).css('background-color')!='rgb(0, 3, 123)')
+			{
+				 var this_x = $(this).attr('x');
+				 var this_y = $(this).attr('y');
+				if($(thisButton).val()==4 && typeof ShipPartLeft == 'undefined') {
+					ShipPartLeft = 3;
+				 $(this).css('background-color', '#00037b'); 
+					MyShips["4"]['0'][ShipPartLeft]['x'] = this_x;
+					MyShips["4"]['0'][ShipPartLeft]['y'] = this_y;
+				}
+				else {
+				
+				if(isAdjacent(this_x, this_y)) {
+					$(this).css('background-color', '#00037b'); 
+					
+					ShipPartLeft--;
+					MyShips["4"]['0'][ShipPartLeft]['x'] = this_x;
+					MyShips["4"]['0'][ShipPartLeft]['y'] = this_y;
+					if(ShipPartLeft==0) {
+						$(thisButton).attr('left', 0);
+							$(thisButton).attr('disabled', true);
+							selectShipRadio(); ShipsSet++;
+							delete(ShipPartLeft);
+							fillAround(4); 
+							$("#ship4-u").html($("#ship4-u").html()-1);
+						}
+					
+					
+					}
+					//else alert('nie jest sasiadem');
+				 
+				 
+				 
+				 }
+			}
+		break;
+		
+		}
+		var posting = $.post('query.php?update_status', { s: ShipsSet, p: player_id } );
+		//$(this).attr('x')+','+$(this).attr('y');
+      	
+		if($("#ship1-u").html()=="0" && $("#ship2-u").html()=="0" && $("#ship3-u").html()=="0" && $("#ship4-u").html()=="0" )
+		{
+			$("#shipgrid").fadeOut(); $("#ship_choice").fadeOut();
+			if($("#player_ships_progress").val()!=100)
+			$(".info").html('Oczekiwanie na drugiego gracza.');
+			else
+			{
+				$(".info").html('Statki zostały ustawione. Gra rozpoczyna się...');
+				var posting = $.post('query.php?both_ready', { s: 'r' } );
+			}
+			$(".overlay").fadeIn();
+			gamestate = 2;
+		
+		}
+    });
+
+	}
+	else if(gamestate==2) {
+    $("#shipgrid").on( "click", "td[x]", function() {
+        console.log($(this).attr('x')+','+$(this).attr('y'));
+      
+    }); }
+	else if(gamestate==3){
+	
+	
+	}
+	function update_players() {
+	if(typeof player_id == 'undefined') {
+		var posting = $.post('query.php?check_players', { p: 1 } );  player_id=1;}
+		else
+		var posting = $.post('query.php?check_players', { p: player_id } ); 
+	}
+      $(document).ready(function () {
+	 update_players();
+
+     makeGrid();
+     // console.log(tab);
+		
+      });
+	  $( window ).unload(function() {
+		
+	  });
+	  function selectShipRadio()
+	{
+		$('input[name=ship_radio]').each(function(index, elem) {
+			if($(elem).attr('disabled') != 'disabled')
+			{
+				$(elem).prop('checked', true);
+			}
+		});
+		console.log(player_id);
+		//channel.trigger("update_status", { Ships:ShipsSet });
+	}
+	function MakeHit()
+	{
+		//alert(your_move);
+		if(your_move==true)
+		{
+			if($(this).html().length==0) {
+			$(this).html("<img src='loading.gif'>");
+			your_move=false;
+			var this_x = $(this).attr('x');
+			var this_y = $(this).attr('y');
+			var posting = $.post('query.php?hit', { x: this_x, y: this_y, p: player_id, socket_id: socketId } );
+			}
+		}
+	}
+    </script>
+	<div id="player_ships_div">Postęp układania statków przez drugiego gracza:</div>
+	<progress id="player_ships_progress" value="0" max="100"></progress>
+    </body>
+    </html>
