@@ -11,4 +11,4 @@ $auth = $pusher->socket_auth($_POST['channel_name'], $userId);
  //$presence_data = array('user_id' => $userId);
  $presence_data = array();
   echo $pusher->presence_auth($_POST['channel_name'], $_POST['socket_id'], $userId, $presence_data);
-  ?>
+?>

@@ -188,7 +188,7 @@ background-color: #000;
 	</div>
 	<div style="width:510px; margin:0 auto;margin-top:25px;">
     <table id="shipgrid">
-	<tr><td colspan="11" style="border-bottom:2px solid black;">Twoje statki [ <a href="javascript:return false;" id="resetBtn">Reset</a> ]</td></tr>
+	<tr><td colspan="11" style="border-bottom:2px solid black;">Twoje statki [ <a href="javascript:;" id="resetBtn">Reset</a> ]</td></tr>
 	<div id="awaiting"></div>
 	<div id="ship_choice"><form id="ship_choice_form"><input type="radio" name="ship_radio" value="1" left="4"> 1-masztowiec [<span id="ship1-u">4</span>] 
 	<input type="radio" name="ship_radio" value="2" left="3"> 2-masztowiec [<span id="ship2-u">3</span>]
@@ -207,8 +207,6 @@ background-color: #000;
  function OznaczPudla(maszty, ship_id, grid_id) { //wywołanie: OznaczPudla(data.maszty, data.ship_id);
 	if(grid_id == 'Enemy_Ships') tab = EnemyShips; else tab = MyShips;
  	$.each(tab[maszty][ship_id], function(i, v) { //odnalezienie trafianego masztu w tablicy i oznaczenie go jako trafiony 
-
-
 
  		if (!$('#'+grid_id).find('td[x=' + (parseInt(v.x) + 1) + '][y=' + (parseInt(v.y) - 1) + ']').hasClass('maszt-hit')) $('#'+grid_id).find('td[x=' + (parseInt(v.x) + 1) + '][y=' + (parseInt(v.y) - 1) + ']').html('<span class="glyphicon glyphicon-certificate"></span>');
  		if (!$('#'+grid_id).find('td[x=' + (parseInt(v.x) + 1) + '][y=' + (parseInt(v.y)) + ']').hasClass('maszt-hit')) $('#'+grid_id).find('td[x=' + (parseInt(v.x) + 1) + '][y=' + (parseInt(v.y)) + ']').html('<span class="glyphicon glyphicon-certificate"></span>');
@@ -251,9 +249,6 @@ background-color: #000;
 
  	($('#shipgrid').find('td[x=' + (parseInt($(this_x).selector)) + '][y=' + (parseInt($(this_y).selector) + 1) + ']').hasClass('maszt-marked'))) return true;
  	else return false;
-
-
-
  }
 
  function makeGrid(param) {
@@ -763,7 +758,10 @@ channel.bind('client-remaining_ships', function(data) {
 				
  				if (Total_MyShips_Hit == 10) //jeśli trafiono wszystkie statki - gra skończona
  				{
-					var addrParam = (window.location.href.split('?')[1].length > 0 ? '?'+window.location.href.split('?')[1] : '');
+					if(window.location.href.split('?').length>1)
+						var addrParam = '?'+socketId.split('.')[1];
+						else
+						var addrParam = (window.location.href.split('?')[1].length > 0 ? '?'+window.location.href.split('?')[1] : '');
  					$("#move-info").removeClass("alert-info").removeClass("alert-warning").addClass('alert-danger').html('Przegrana. <a href="'+window.location.href+addrParam+'">Rewanż</a>'); //poinformowanie gracza
  					$("#Enemy_Ships").off("click", "td[x]", MakeHit); //wyrejestrowanie zdarzenia kliknięcia z planszy
 					gamestate=4;
@@ -822,14 +820,16 @@ $(window).bind('beforeunload', function(){
 		for (var k = 1; k < 5; k++) {
 			jQuery.each(MyShips[k], function(i,val) {
 				jQuery.each(val, function(j) {
-					MyShips[k][i][j]=0;
+					MyShips[k][i][j]['x']=0;
+					MyShips[k][i][j]['y']=0;
+					MyShips[k][i][j]['hit']=false;
 				})
 			});
 		}
 			ShipsSet=0;
 				deleteOldGrid();
 				makeGrid();
-				
+				delete(ShipPartLeft);
 			
 		});
 	 $("#readyBtn").click(function() {//obsługa gotowości, oczekiwanie na gracza.
@@ -846,7 +846,7 @@ $(window).bind('beforeunload', function(){
 
  });
 
-function deleteOldGrid() {
+function deleteOldGrid() {	//funkcja kasująca planszę ze statkami
 	var flaga = false; $("#shipgrid").find("tr").each(function(i) {
 	if(flaga && $(this).hasClass("topRow")) flaga=false;
 	if(!flaga && $(this).hasClass("topRow"))
@@ -855,7 +855,7 @@ function deleteOldGrid() {
 	if(flaga) $(this).remove();
 
 	} ); 
-	
+		//ustawienie początkowych wartości dla radio-buttonów
 		$('input[name=ship_radio][value=1]').attr('left', '4');
 		$('input[name=ship_radio][value=2]').attr('left', '3');
 		$('input[name=ship_radio][value=3]').attr('left', '2');
@@ -864,6 +864,7 @@ function deleteOldGrid() {
 		$("#ship2-u").text("3");
 		$("#ship3-u").text("2");
 		$("#ship4-u").text("1");
+		//odblokowanie wszystkich radio-buttonów
 		$.each($('input[name=ship_radio]'), function(v,i) { $(this).prop("disabled", null); });
 	
 }
@@ -902,10 +903,18 @@ function deleteOldGrid() {
  	}
  }
  if (gamestate == 1) //ustawianie statków
- {
+ {	
+	//blokada zmiany rodzaju wstawianego statku w trakcie wstawiania statku
+	$("input[name=ship_radio]").click( function() {
+		if(typeof ShipPartLeft != 'undefined')
+		{
+			return false;
+		}
+	});
+	//zdarzenie kliknięcia w pole na planszy w celu ustawienia statku
  	$("#shipgrid").on("click", "td[x]", function() {
  		var thisButton = $('input[name=ship_radio]').filter(':checked');
- 		//console.log(player_id);
+ 		//Sprawdzenie wybranego radio-buttona - ilo masztowy statek jest wstawiany
  		switch ($(thisButton).val()) {
  			case '1':
  				
