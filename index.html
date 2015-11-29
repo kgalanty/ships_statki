@@ -8,6 +8,8 @@
 	<script src="https://js.pusher.com/3.0/pusher.min.js"></script>
 	<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+	<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.0/css/bootstrap-toggle.min.css" rel="stylesheet">
+	<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.0/js/bootstrap-toggle.min.js"></script>
     <style>
 	#mask { width:600px; height:500px; float:left; position:absolute; background-color:rgba(255,255,255,0.5);
 	margin-left: 510px;
@@ -142,6 +144,7 @@ background-color: rgba(219,220,220,0.36);
 }
 .alert-danger {
 	border: 3px;
+	font-weight: bold;
 }
 .maszt td {
 }
@@ -202,7 +205,7 @@ background-color: #000;
 	<input type="radio" name="ship_radio" value="4" left="1" checked> 4-masztowiec [<span id="ship4-u">1</span>]</form><div id="readyDiv"><button id="readyBtn" type="button" class="btn btn-default" disabled>Gotów</button></div></div></table>
 	<div class="main">
     <script>
-	//Ostatnie zmiany - 28-11-2015 0:44
+	//Ostatnie zmiany - 29-11-2015 22:41
  var tab = '<tr class="topRow"><th></th>';
  var letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']; //tablica liter do generowania plansz
  var your_move = true; //zmienna decydująca o tym kto ma ruch
@@ -211,7 +214,7 @@ background-color: #000;
  var ShipsSet = 0; //liczba ustawionych statków
  var player_id; //id gracza - prawdopodobnie do zlikwidowania w przyszłości na rzecz socket_id
  
- function OznaczPudla(maszty, ship_id, grid_id) { //wywołanie: OznaczPudla(data.maszty, data.ship_id);
+ function OznaczPudla(maszty, ship_id, grid_id) { //wywołanie: OznaczPudla(data.maszty, data.ship_id, grid_id='Enemy_Ships' lub null);
 	if(grid_id == 'Enemy_Ships') tab = EnemyShips; else tab = MyShips;
  	$.each(tab[maszty][ship_id], function(i, v) { //odnalezienie trafianego masztu w tablicy i oznaczenie go jako trafiony 
 
@@ -239,10 +242,8 @@ background-color: #000;
  			if (!$('#shipgrid').find('td[x=' + (parseInt($(this_x).selector) - 1) + '][y=' + (parseInt($(this_y).selector)) + ']').hasClass('maszt-marked')) $('#shipgrid').find('td[x=' + (parseInt($(this_x).selector) - 1) + '][y=' + (parseInt($(this_y).selector)) + ']').addClass('maszt-otoczenie').prop('maszt_o', 'true');
  			if (!$('#shipgrid').find('td[x=' + (parseInt($(this_x).selector) - 1) + '][y=' + (parseInt($(this_y).selector) - 1) + ']').hasClass('maszt-marked')) $('#shipgrid').find('td[x=' + (parseInt($(this_x).selector) - 1) + '][y=' + (parseInt($(this_y).selector) - 1) + ']').addClass('maszt-otoczenie').prop('maszt_o', 'true');
  			if (!$('#shipgrid').find('td[x=' + (parseInt($(this_x).selector)) + '][y=' + (parseInt($(this_y).selector) + 1) + ']').hasClass('maszt-marked')) $('#shipgrid').find('td[x=' + (parseInt($(this_x).selector)) + '][y=' + (parseInt($(this_y).selector) + 1) + ']').addClass('maszt-otoczenie').prop('maszt_o', 'true');
-
  		})
  	});
-
  }
 
  function isAdjacent(this_x, this_y) {	//Sprawdzenie czy obok pola o podanych x i y znajduje sie już pole z masztem 
@@ -644,16 +645,7 @@ channel.bind('client-both_ready', function(data) { //potwierdzenie gotowości ob
 		Enemy_Move();
  	
  });
- /*channel.bind('check_player', function(data) {
 
- 	if (data.message == "2") {
- 		player_id = 1;
- 		var posting = $.post('query.php?check_players', {
- 			p: data.message
- 		});
- 	} else player_id = 2;
-
- });*/
 channel.bind('client-remaining_ships', function(data) {
 	
 		var json = $.parseJSON(data.json_str);
@@ -716,16 +708,16 @@ channel.bind('client-remaining_ships', function(data) {
 
  		}
  });
- channel.bind('client-find_player', function(data) {
+ channel.bind('client-find_player', function(data) {	//Odebranie gotowości drugiego gracza
 	if (ShipsSet == 10) {
 	     if(data.confirm=='true') {
 		 
 		 StartGame();
 		 Your_Move();
 		  
-			EnemyID=data.id;
+		 EnemyID=data.id;
 		 }
-		 channel.trigger('client-cofirm_ready', {
+		 channel.trigger('client-cofirm_ready', {	//Potwierdzenie gotowości 
 				id: channel.members.myID,
  				socket_id: socketId
  			});
@@ -738,7 +730,7 @@ channel.bind('client-remaining_ships', function(data) {
 		Enemy_Move();
 	}
  });
- channel.bind('client-hit', function(data) {
+ channel.bind('client-hit', function(data) {	//odebranie strzału przeciwnika i przygotowanie odpowiedzi
  if(data.id == EnemyID) {
  		var this_ship = $('#My_Ships').find('td[x=' + (parseInt(data.x)) + '][y=' + (parseInt(data.y)) + ']');
  		if ($(this_ship).attr('shipf') == 'true') //jezeli maszt jest trafiony
@@ -750,7 +742,7 @@ channel.bind('client-remaining_ships', function(data) {
  			var this_x = data.x;
  			var this_y = data.y;
  			var not_hit_count = 0; //liczba wciąz nietrafionych masztów
- 			$.each(MyShips[maszty_count][ship_id], function(i, v) { //odnalezienie trafianego masztu w tablicy i oznaczenie go jako trafiony 
+ 			$.each(MyShips[maszty_count][ship_id], function(i, v) { //odnalezienie trafianego masztu w tablicy i oznaczenie go jako trafiony oraz zliczenie trafionych masztów w tym statku
  				if (v.x == data.x && v.y == data.y) {
  					v.hit = true;
  					id_maszt = i;
@@ -856,12 +848,13 @@ $(window).bind('beforeunload', function(){
  });
 
 function deleteOldGrid() {	//funkcja kasująca planszę ze statkami przy zresetowaniu
-	var flaga = false; $("#shipgrid").find("tr").each(function(i) {
-	if(flaga && $(this).hasClass("topRow")) flaga=false;
-	if(!flaga && $(this).hasClass("topRow"))
-	 flaga=true;
+	var flaga = false; 
+	$("#shipgrid").find("tr").each(function(i) {
+		if(flaga && $(this).hasClass("topRow")) flaga=false;
+		if(!flaga && $(this).hasClass("topRow"))
+		 flaga=true;
 
-	if(flaga) $(this).remove();
+		if(flaga) $(this).remove();
 
 	} ); 
 		//ustawienie początkowych wartości dla radio-buttonów
@@ -913,7 +906,8 @@ function deleteOldGrid() {	//funkcja kasująca planszę ze statkami przy zreseto
 	//zdarzenie kliknięcia w pole na planszy w celu ustawienia statku
  	$("#shipgrid").on("click", "td[x]", function() {
  		var thisButton = $('input[name=ship_radio]').filter(':checked');
- 		//Sprawdzenie wybranego radio-buttona - ilo masztowy statek jest wstawiany
+ 
+			//Sprawdzenie wybranego radio-buttona - ilo masztowy statek jest wstawiany
  		switch ($(thisButton).val()) {
  			case '1':
  				
@@ -972,7 +966,7 @@ function deleteOldGrid() {	//funkcja kasująca planszę ze statkami przy zreseto
  				}
  				break;
  			case '3':
- 				if ($("#ship3-u").html() != "0" && $(this).css('background-color') != 'rgb(185, 143, 255)' && $(this).css('background-color') != 'rgb(0, 3, 123)') {
+ 				if ($("#ship3-u").html() != "0" && !$(this).hasClass('maszt-marked') && !$(this).hasClass('maszt-otoczenie')) {
  					var this_x = $(this).attr('x');
  					var this_y = $(this).attr('y');
  					if ($(thisButton).attr('left') != 0 && typeof ShipPartLeft == 'undefined') {
@@ -1004,7 +998,7 @@ function deleteOldGrid() {	//funkcja kasująca planszę ze statkami przy zreseto
  				}
  				break;
  			case '4':
- 				if ($("#ship4-u").html() == "1" && $(this).css('background-color') != 'rgb(185, 143, 255)' && $(this).css('background-color') != 'rgb(0, 3, 123)') {
+ 				if ($("#ship4-u").html() == "1" && !$(this).hasClass('maszt-marked') && !$(this).hasClass('maszt-otoczenie')) {
  					var this_x = $(this).attr('x');
  					var this_y = $(this).attr('y');
  					if ($(thisButton).val() == 4 && typeof ShipPartLeft == 'undefined') {
