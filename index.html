@@ -205,7 +205,7 @@ background-color: #000;
 	<input type="radio" name="ship_radio" value="4" left="1" checked> 4-masztowiec [<span id="ship4-u">1</span>]</form><div id="readyDiv"><button id="readyBtn" type="button" class="btn btn-default" disabled>Gotów</button></div></div></table>
 	<div class="main">
     <script>
-	//Ostatnie zmiany - 29-11-2015 22:41
+	//Ostatnie zmiany - 01-12-2015 14:47
  var tab = '<tr class="topRow"><th></th>';
  var letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']; //tablica liter do generowania plansz
  var your_move = true; //zmienna decydująca o tym kto ma ruch
@@ -313,7 +313,7 @@ background-color: #000;
 	$('#statki-main').append('<div id="enemy_ship_legend"><div class="ship-4"><span class="maszt-legend"></span><span class="maszt-legend"></span><span class="maszt-legend"></span><span class="maszt-legend"></span></div><div class="ship-3" style="float:left"><span class="maszt-legend"></span><span class="maszt-legend"></span><span class="maszt-legend"></span></div><div class="ship-3" style="margin-left:50px;"><span class="maszt-legend"></span><span class="maszt-legend"></span><span class="maszt-legend"></span></div><div class="ship-2" style="float:left"><span class="maszt-legend"></span><span class="maszt-legend"></span></div><div class="ship-2" style="float:left;margin-left:15px;"><span class="maszt-legend"></span><span class="maszt-legend"></span></div><div class="ship-2" style="margin-left:80px;"><span class="maszt-legend"></span><span class="maszt-legend"></span></div><div class="ship-1" style="float:left"><span class="maszt-legend"></span></div><div class="ship-1" style="float:left"><span style="margin-left:10px;" class="maszt-legend"></span></div><div class="ship-1" style="float:left"><span style="margin-left:10px;" class="maszt-legend"></span></div><div class="ship-1" style="float:left"><span style="margin-left:10px;" class="maszt-legend"></span></div></div>');
  	$("#Enemy_Ships").on("click", "td[x]", MakeHit);
  	makeGrid(2);
- 	for (var k = 1; k < 5; k++) {
+ 	for (var k = 1; k < 5; k++) {	//Narysowanie własnych statków na planszy
  		jQuery.each(MyShips[k], function(i, val) {
  			jQuery.each(val, function(j, v2) {
  				if (typeof v2 == 'number') {
@@ -607,8 +607,6 @@ background-color: #000;
  		socketId = pusher.connection.socket_id;
 	if(window.location.search.length>0) {
 		userId=window.location.search.substring(1, window.location.search.length);
-		//EnemyID=userId;
-		//$(".overlay").css('display', 'none');
 		$.each($('input[name=ship_radio]'), function(v,i) { $(this).prop("disabled", null); });
 		$("#connection_id").val(window.location.href);
 	} else {
@@ -620,7 +618,7 @@ background-color: #000;
 		channel = pusher.subscribe('presence-id'+userId); //subskrybcja kanału nasłuchu w websocket
 		//channel2 = pusher.subscribe('presence-activegame');
 	channel.bind('pusher:member_removed', function(member) {
-  // for example:
+
   if(EnemyID==member.id && gamestate == 3)
   {
 		$("body").empty();
@@ -638,15 +636,7 @@ channel.bind('pusher:member_added', function(member) {
 channel.bind('pusher:subscription_error', function(status) {
   console.log(status);
 });
-
-channel.bind('client-both_ready', function(data) { //potwierdzenie gotowości obu graczy (ustawienie statków)
-
- 		StartGame();
-		Enemy_Move();
- 	
- });
-
-channel.bind('client-remaining_ships', function(data) {
+channel.bind('client-remaining_ships', function(data) {	//Odebranie informacji o pozostałych statkach na końcu gry
 	
 		var json = $.parseJSON(data.json_str);
 				$(json).each(function(i,val){
@@ -655,14 +645,13 @@ channel.bind('client-remaining_ships', function(data) {
 					});
 				});
 });
- channel.bind('client-hit_t', function(data) {
+ channel.bind('client-hit_t', function(data) {	//Obsługa odpowiedzi strzału w statek
 
  if(data.p == player_id)
  		if (data.ship_hit == 'true') { //statek trafiony
  			EnemyShips[data.maszty][data.ship_id][data.id_maszt].hit = true;
  			EnemyShips[data.maszty][data.ship_id][data.id_maszt].x = data.x;
  			EnemyShips[data.maszty][data.ship_id][data.id_maszt].y = data.y;
- 			//var ShipCoord = [];
  			if (data.entire_ship_hit == true) {
  				OznaczPudla(data.maszty, data.ship_id, 'Enemy_Ships'); //obrysowanie statku pudłami
  				Total_Ships_Hit++;
@@ -674,7 +663,7 @@ channel.bind('client-remaining_ships', function(data) {
 					addrRoom = window.location.href+'?'+socketId.split('.')[1];
  					$("#move-info").removeClass("alert-info").removeClass("alert-warning").addClass('alert-success').addClass('won-info').html('Wygrana. <a href="'+addrRoom+'">Zagraj jeszcze raz</a>');
  					$("#Enemy_Ships").off("click", "td[x]", MakeHit);
-				//wysłanie informacji do drugiego gracza o pozostałych statkach
+				//wysłanie informacji do drugiego gracza o pozostałych statkach na samym końcu gry w json
 				var ships_remaining='[';
 					for (var k = 1; k < 5; k++) {
 						jQuery.each(MyShips[k], function(i,val) {
@@ -770,8 +759,6 @@ channel.bind('client-remaining_ships', function(data) {
 					gamestate = 4;
 				
 				$('#mask').css('display', 'none');
-				//console.log(ships_remaining);	
-
 				}
  			} else var entire_ship_hit = false;
  			var ship_hit = 'true';
@@ -786,9 +773,6 @@ channel.bind('client-remaining_ships', function(data) {
  				maszty: maszty_count,
  				socket_id: socketId
  			});
-
-
- 			
  		} else if ($(this_ship).attr('shipf') == 'false') {
  			$(this_ship).html('<span class="glyphicon glyphicon-certificate"></span>');
  			var this_x = data.x;
@@ -811,17 +795,16 @@ channel.bind('client-remaining_ships', function(data) {
 
  });
 	});
-$(window).bind('beforeunload', function(){
+$(window).bind('beforeunload', function(){	//Okienko informujące o trwającej rozgrywce przy próbie zamknięcia lub odświeżenia strony
 	if(gamestate==3)
         return "Rozgrywka zostanie utracona."
-  
 });
- $(document).ready(function() {
+ $(document).ready(function() { //Funkcja uruchamiana po otwarciu strony
  		
-	makeGrid();
+	makeGrid();	//Rysowanie planszy
 	  $("#resetBtn").click(function() {		//Obsługa przycisku reset
 		for (var k = 1; k < 5; k++) {
-			jQuery.each(MyShips[k], function(i,val) {
+			jQuery.each(MyShips[k], function(i,val) {	//zresetowanie obiektu współrzędnych statków
 				jQuery.each(val, function(j) {
 					MyShips[k][i][j]['x']=0;
 					MyShips[k][i][j]['y']=0;
@@ -829,10 +812,10 @@ $(window).bind('beforeunload', function(){
 				})
 			});
 		}
-			ShipsSet=0;
-				deleteOldGrid();
-				makeGrid();
-				delete(ShipPartLeft);
+			ShipsSet=0;			//Wyzerowanie zmiennej przechowującej liczbę już ustawionych w całości statków
+			deleteOldGrid();	//Usunięcie planszy
+			makeGrid();		//Rysowanie nowej planszy
+			delete(ShipPartLeft);	//Usunięcie zmiennej przechowującej liczbę pozostałych do wstawienia masztów statku
 			
 		});
 	 $("#readyBtn").click(function() {//obsługa gotowości, oczekiwanie na gracza.
@@ -906,7 +889,6 @@ function deleteOldGrid() {	//funkcja kasująca planszę ze statkami przy zreseto
 	//zdarzenie kliknięcia w pole na planszy w celu ustawienia statku
  	$("#shipgrid").on("click", "td[x]", function() {
  		var thisButton = $('input[name=ship_radio]').filter(':checked');
- 
 			//Sprawdzenie wybranego radio-buttona - ilo masztowy statek jest wstawiany
  		switch ($(thisButton).val()) {
  			case '1':
@@ -972,7 +954,6 @@ function deleteOldGrid() {	//funkcja kasująca planszę ze statkami przy zreseto
  					if ($(thisButton).attr('left') != 0 && typeof ShipPartLeft == 'undefined') {
  						ShipPartLeft = 2;
  						$(this).addClass('maszt-marked');
- 						//console.log($(thisButton).attr('left')-1);
  						MyShips["3"][($(thisButton).attr('left')) - 1][ShipPartLeft]['x'] = this_x;
  						MyShips["3"][($(thisButton).attr('left')) - 1][ShipPartLeft]['y'] = this_y;
 
@@ -1032,13 +1013,8 @@ function deleteOldGrid() {	//funkcja kasująca planszę ze statkami przy zreseto
 			$('#readyBtn').removeProp('disabled');
  			}
  		});
- } else if (gamestate == 2) {
- 	$("#shipgrid").on("click", "td[x]", function() {
- 		console.log($(this).attr('x') + ',' + $(this).attr('y'));
-
- 	});
  }
     </script>
     </div>
-	</div>		</body>
+	</div></body>
     </html>
