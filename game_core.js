@@ -1,4 +1,4 @@
-//Ostatnie zmiany - 07-02-2016 18:24
+//Ostatnie zmiany - 07-02-2016 23:00
  var tab = '<tr class="topRow"><th></th>';
  var letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']; //tablica liter do generowania plansz
  var your_move = true; //zmienna decydująca o tym kto ma ruch
@@ -10,18 +10,16 @@
  function OznaczPudla(maszty, ship_id, grid_id) { //wywołanie: OznaczPudla(data.maszty, data.ship_id, grid_id='Enemy_Ships' lub null);
 	if(grid_id == 'Enemy_Ships') tab = EnemyShips; else tab = MyShips;
  	$.each(tab[maszty][ship_id], function(i, v) { //odnalezienie trafianego masztu w tablicy i oznaczenie go jako trafiony 
-
- 		if (!$('#'+grid_id).find('td[x=' + (parseInt(v.x) + 1) + '][y=' + (parseInt(v.y) - 1) + ']').hasClass('maszt-hit')) $('#'+grid_id).find('td[x=' + (parseInt(v.x) + 1) + '][y=' + (parseInt(v.y) - 1) + ']').html('<span class="glyphicon glyphicon-certificate"></span>');
- 		if (!$('#'+grid_id).find('td[x=' + (parseInt(v.x) + 1) + '][y=' + (parseInt(v.y)) + ']').hasClass('maszt-hit')) $('#'+grid_id).find('td[x=' + (parseInt(v.x) + 1) + '][y=' + (parseInt(v.y)) + ']').html('<span class="glyphicon glyphicon-certificate"></span>');
- 		if (!$('#'+grid_id).find('td[x=' + (parseInt(v.x) + 1) + '][y=' + (parseInt(v.y) + 1) + ']').hasClass('maszt-hit')) $('#'+grid_id).find('td[x=' + (parseInt(v.x) + 1) + '][y=' + (parseInt(v.y) + 1) + ']').html('<span class="glyphicon glyphicon-certificate"></span>');
- 		if (!$('#'+grid_id).find('td[x=' + (parseInt(v.x)) + '][y=' + (parseInt(v.y) - 1) + ']').hasClass('maszt-hit')) $('#'+grid_id).find('td[x=' + (parseInt(v.x)) + '][y=' + (parseInt(v.y) - 1) + ']').html('<span class="glyphicon glyphicon-certificate"></span>');
- 		if (!$('#'+grid_id).find('td[x=' + (parseInt(v.x) - 1) + '][y=' + (parseInt(v.y) + 1) + ']').hasClass('maszt-hit')) $('#'+grid_id).find('td[x=' + (parseInt(v.x) - 1) + '][y=' + (parseInt(v.y) + 1) + ']').html('<span class="glyphicon glyphicon-certificate"></span>');
- 		if (!$('#'+grid_id).find('td[x=' + (parseInt(v.x) - 1) + '][y=' + (parseInt(v.y)) + ']').hasClass('maszt-hit')) $('#'+grid_id).find('td[x=' + (parseInt(v.x) - 1) + '][y=' + (parseInt(v.y)) + ']').html('<span class="glyphicon glyphicon-certificate"></span>');
- 		if (!$('#'+grid_id).find('td[x=' + (parseInt(v.x) - 1) + '][y=' + (parseInt(v.y) - 1) + ']').hasClass('maszt-hit')) $('#'+grid_id).find('td[x=' + (parseInt(v.x) - 1) + '][y=' + (parseInt(v.y) - 1) + ']').html('<span class="glyphicon glyphicon-certificate"></span>');
- 		if (!$('#'+grid_id).find('td[x=' + (parseInt(v.x)) + '][y=' + (parseInt(v.y) + 1) + ']').hasClass('maszt-hit')) $('#'+grid_id).find('td[x=' + (parseInt(v.x)) + '][y=' + (parseInt(v.y) + 1) + ']').html('<span class="glyphicon glyphicon-certificate"></span>');
- 	});
- }
-
+		var vectors = [[1, -1], [1, 0], [1, 1], [0, -1], [-1, 1], [-1, 0], [-1, -1], [0, 1]];
+		for (index in vectors)
+        {
+		    var checkXCoordinate = parseInt(v.x) + vectors[index][0];
+            var checkYCoordinate = parseInt(v.y) + vectors[index][1];
+			if (IsNotHit(checkXCoordinate, checkYCoordinate, grid_id)) 
+				GetCell(checkXCoordinate, checkYCoordinate, grid_id).html('<span class="glyphicon glyphicon-certificate"></span>');
+ 	}
+ });
+}
  
 function fillAround(shipSize) {    //Obrysowanie wstawianego statku na planszy
      jQuery.each(MyShips[shipSize], function(i, ship) {
@@ -38,7 +36,10 @@ function fillAround(shipSize) {    //Obrysowanie wstawianego statku na planszy
  {
     return x > 0 && y > 0;
  }
-
+function IsNotHit(x,y, grid_id)
+{
+	return !GetCell(x,y, grid_id).hasClass('maszt-hit');
+}
  function MarkBorderForMast(mastXCoordinate, mastYCoordinate)
  {
         var vectors = [[1, -1], [1, 0], [1, 1], [0, -1], [-1, 1], [-1, 0], [-1, -1], [0, 1]];
@@ -53,17 +54,17 @@ function fillAround(shipSize) {    //Obrysowanie wstawianego statku na planszy
 
 function IsMarkedAsMast(x, y)
  {
-    return GetCell(x, y).hasClass('maszt-marked');
+    return GetCell(x, y, 'shipgrid').hasClass('maszt-marked');
  }
 
  function MarkAsBorder(x, y)
  {
-    GetCell(x, y).addClass('maszt-otoczenie').prop('maszt_o', 'true');
+    GetCell(x, y, 'shipgrid').addClass('maszt-otoczenie').prop('maszt_o', 'true');
  }
 
- function GetCell(x, y)
+ function GetCell(x, y, ship_id)
  {
-    return $('#shipgrid').find('td[x=' + x + '][y=' + y + ']');
+    return $('#'+ship_id).find('td[x=' + x + '][y=' + y + ']');
  }
  function ExistsAdjacentMast(x, y) {    //Sprawdzenie czy obok pola o podanych x i y znajduje sie już pole z masztem
     var vectors = [[1, 0], [0, -1], [-1, 0], [0, 1]];
