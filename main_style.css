@@ -1,0 +1,173 @@
+#mask { width:600px; height:500px; float:left; position:absolute; background-color:rgba(255,255,255,0.5);
+	margin-left: 510px;
+	z-index:5; }
+	.maszt-hit {
+	  background-color: rgba(255,0,0,0.3);
+	}
+	.last { background: #FFF4A2; }
+#My_Ships, #Enemy_Ships {
+  float: left;
+  margin-right: 30px;
+  border: 0;
+  width: 400px;
+  height: 400px;
+  border-collapse: collapse;
+}
+
+#My_Ships td, #Enemy_Ships td {
+  border-collapse: collapse;
+  width: 22px;
+  height: 22px;
+}
+
+#My_Ships td[x], #Enemy_Ships td[x] {
+  border: 1px solid #6688ff;
+}
+
+#Enemy_Ships td[x]:hover {
+  border-collapse: collapse;
+  width: 18px;
+  height: 18px;
+  background-color: #E7EFFF;
+}
+#Enemy_Ships td[shipf=true]:hover {
+  
+  background-color: #FFF;
+}
+.topRow td {
+  font-weight: bold;
+}
+
+.cyfry td {
+  border: 0;
+}
+
+#shipgrid {
+  border: 0;
+  width: 450px;
+  height: 450px;
+  border-collapse: collapse;
+  text-align: center;
+}
+#shipgrid td[x] {
+  border: 1px solid #6688ff;
+}
+#shipgrid td {
+  
+  border-collapse: collapse;
+  width: 18px;
+  height: 18px;
+}
+
+#shipgrid td[x]:hover {
+  border: 2px solid #E6E6E6;
+  border-collapse: collapse;
+  width: 18px;
+  height: 18px;
+  background-color: #E7EFFF;
+}
+#shipgrid td[x]:active {
+  border: 2px solid #E6E6E6;
+  border-collapse: collapse;
+  width: 18px;
+  height: 18px;
+  background-color: #000;
+}
+td.topRow {
+  font-weight: bold;
+  border: 0;
+}
+
+div.overlay {
+ padding-top:5%;
+ 
+  background: #fff;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  top: 0;
+  left: 0;
+  display:none;
+  position: fixed;
+}
+
+.info {
+  font-size: 16px;
+width:500px;
+padding-bottom:10px;
+margin:0 auto;
+  font-family: Verdana;
+}
+
+#player_ships_div {
+}
+
+#statki-main {
+  width: 1200px;
+  text-align: center;
+  margin:0 auto;
+}
+
+#move-info {
+  margin: 0 auto;
+  width: 80%;
+  text-align: center;
+  margin-bottom: 30px;
+  margin-top: 10px;
+ border: 3px solid;
+}
+.top-info{
+
+	width:100%;
+	margin:0 auto;
+background-color: rgba(219,220,220,0.36);
+ }
+.won-info {
+  color: #76CC40;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #DEFFD1;
+  border: 3px solid #92E65D;
+}
+.alert-danger {
+	border: 3px;
+	font-weight: bold;
+}
+.maszt td {
+}
+input#connection_id  {width: 400px; }
+.maszt-marked {
+background-color: #000;
+}
+.maszt-otoczenie {
+	background-color: rgba(128, 128, 128, 0.48);
+}
+#loading {
+	margin-bottom:-5px;
+	width:100%;
+	display:none;
+	top:0;
+	position:absolute;
+}
+#enemy_ship_legend, #my_ship_legend {
+	text-align: left;
+	float: left;
+	margin-top: 65px;
+}
+.maszt-legend {
+	width: 10px; 
+	height: 10px; 
+	background-color: #6688FF;
+	display:inline-block;
+	margin-right:1px;
+}
+.maszt-legend-hit {
+	width: 10px; 
+	height: 10px; 
+	background-color: #FF6666;
+	display:inline-block;
+	margin-right:1px;
+}
+.maszt-nothit {
+    background-color: rgba(0, 55, 255, 0.24);
+}
